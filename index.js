@@ -9,6 +9,7 @@ $(document).ready(function () {
     var totalHours = 40;
     console.log("Hello world");
     // page is now ready, initialize the calendar...
+    var map = {};
     var users;
     var events;
     var selectedEmployeeId;
@@ -22,6 +23,7 @@ $(document).ready(function () {
         $.each(data.result, function (key, val) {
             console.log(val.name);
             $("select").append("<option value=\"" + val.sys_id + "\">" + val.name + "</option>");
+            map[val.sys_id] = val.name;
         });
     });
 
@@ -30,6 +32,9 @@ $(document).ready(function () {
         events = data.result;
         $.each(data.result, function (key, val) {
             console.log("Event id" + val.sys_id);
+        });
+        events.sort(function (a, b) {
+            return getDateFromString(b.start_date_time).getTime() - getDateFromString(a.start_date_time).getTime();
         });
         getResultSet();
         $.each(users, function (key, value) {
@@ -41,8 +46,21 @@ $(document).ready(function () {
                 }
             });
         });
-       $('#userInfo').append("<h3>Max busy:"+maxBusyPerson+" </h3>");
-       $('#userInfo').append("<h3>Min busy:"+minBusyPerson+" </h3>");
+        $('#userInfo').append("<h4>Max busy: " + maxBusyPerson + " </h4>");
+        $('#userInfo').append("<h4>Min busy: " + minBusyPerson + " </h4>");
+        $('#userInfo').append("<h3> Users busy with tasks</h3>");
+        $.each(events,function(key,value){
+            if(value.type==='task'){
+                 $('#userInfo').append("<p>"+map[value.user.value]+" : "+ getDateFromString(value.start_date_time).toUTCString()+" to "+getDateFromString(value.end_date_time).toUTCString()+"</p>");
+            }
+        });
+        $('#userInfo').append("<h3> Users busy with meeting</h3>");
+        $.each(events,function(key,value){
+            if(value.type==='meeting'){
+                 $('#userInfo').append("<p>"+map[value.user.value]+" : "+ getDateFromString(value.start_date_time).toUTCString()+" to "+getDateFromString(value.start_date_time).toUTCString()+"</p>");
+            }
+        });
+
     });
 
     $('#calendar').fullCalendar({
@@ -125,38 +143,43 @@ $(document).ready(function () {
             console.log(val.name);
             var currentUser = val.sys_id;
             var hoursBusy = 0;
+            var taskType;
+            var start_date;
 
             $.each(events, function (key, val) {
                 if (val.user.value === currentUser) {
-                    var start_date = getDateFromString(val.start_date_time);
+                    start_date = getDateFromString(val.start_date_time);
                     var end_date = getDateFromString(val.end_date_time);
                     var timeDiff = Math.abs(end_date.getTime() - start_date.getTime());
                     var diffHours = Math.ceil(timeDiff / (1000 * 3600));
                     hoursBusy = hoursBusy + diffHours;
+                    taskType = val.type;
 
                 }
             });
             console.log(val.name + " is busy for " + hoursBusy);
-            var obj = {name: val.name, hoursBusy: hoursBusy};
+            var obj = {name: val.name, hoursBusy: hoursBusy, type: taskType, startDate: start_date};
             resultSet.push(obj);
             if (hoursBusy > maxBusy) {
                 maxBusy = hoursBusy;
                 maxBusyPerson = val.name;
-            }
-            else if(hoursBusy===maxBusy){
-                maxBusyPerson = maxBusyPerson+","+val.name;
+            } else if (hoursBusy === maxBusy) {
+                maxBusyPerson = maxBusyPerson + "," + val.name;
             }
             if (hoursBusy < minBusy) {
                 minBusy = hoursBusy;
                 minBusyPerson = val.name;
-            }
-            else if(hoursBusy===minBusy){
-                minBusyPerson=minBusyPerson+","+val.name;
+            } else if (hoursBusy === minBusy) {
+                minBusyPerson = minBusyPerson + "," + val.name;
             }
         });
         console.log("Max busy:" + maxBusyPerson);
         console.log("Min busy:" + minBusyPerson);
         //drawGraph(resultSet);
+        resultSet.sort(function (a, b) {
+            return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        });
+        console.log(JSON.stringify(resultSet));
     }
 
 
