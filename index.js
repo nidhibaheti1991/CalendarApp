@@ -6,6 +6,7 @@
 
 
 $(document).ready(function () {
+    var totalHours = 40;
     console.log("Hello world");
     // page is now ready, initialize the calendar...
     var users;
@@ -13,6 +14,8 @@ $(document).ready(function () {
     var selectedEmployeeId;
     var selectedEmployeeEvents = [];
     var resultSet = [];
+    var maxBusyPerson;
+    var minBusyPerson;
     $.getJSON('JS/users.json', function (data) {
         console.log("getting json");
         users = data.result;
@@ -29,7 +32,19 @@ $(document).ready(function () {
             console.log("Event id" + val.sys_id);
         });
         getResultSet();
+        $.each(users, function (key, value) {
+            console.log("XXX");
+            var userName = value.name;
+            $.each(resultSet, function (key, val) {
+                if (val.name === userName) {
+                    $('#userInfo').append("<p>" + val.name + " is busy for " + val.hoursBusy + " hours and free for " + (totalHours - val.hoursBusy) + " hours from March 6 to March 10.</p>");
+                }
+            });
+        });
+       $('#userInfo').append("<h3>Max busy:"+maxBusyPerson+" </h3>");
+       $('#userInfo').append("<h3>Min busy:"+minBusyPerson+" </h3>");
     });
+
     $('#calendar').fullCalendar({
         // put your options and callbacks here
         header: {
@@ -86,13 +101,13 @@ $(document).ready(function () {
 
         });
         console.log(JSON.stringify(resultSet));
-        
+
         //console.log("Busy for" + hoursBusy + " hours");
-        $.each(resultSet, function (key, val) {
-            if (val.name === selectedText) {
-                $('#userInfo').append("<p>" + val.name + " is busy for " + val.hoursBusy + " hours. </p>");
-            }
-        });
+//        $.each(resultSet, function (key, val) {
+//            if (val.name === selectedText) {
+//                $('#userInfo').append("<p>" + val.name + " is busy for " + val.hoursBusy + " hours and free for "+ (totalHours-val.hoursBusy) +" hours from March 6 to March 10.</p>");
+//            }
+//        });
 
     });
 
@@ -104,10 +119,8 @@ $(document).ready(function () {
     }
 
     function getResultSet() {
-        var maxBusy = 0;
-        var minBusy = 0;
-        var maxBusyPerson;
-        var minBusyPerson;
+        var maxBusy = -Infinity;
+        var minBusy = Infinity;
         $.each(users, function (key, val) {
             console.log(val.name);
             var currentUser = val.sys_id;
@@ -126,73 +139,79 @@ $(document).ready(function () {
             console.log(val.name + " is busy for " + hoursBusy);
             var obj = {name: val.name, hoursBusy: hoursBusy};
             resultSet.push(obj);
-            if (hoursBusy >= maxBusy) {
+            if (hoursBusy > maxBusy) {
                 maxBusy = hoursBusy;
                 maxBusyPerson = val.name;
             }
-            if (hoursBusy <= minBusy) {
+            else if(hoursBusy===maxBusy){
+                maxBusyPerson = maxBusyPerson+","+val.name;
+            }
+            if (hoursBusy < minBusy) {
                 minBusy = hoursBusy;
                 minBusyPerson = val.name;
+            }
+            else if(hoursBusy===minBusy){
+                minBusyPerson=minBusyPerson+","+val.name;
             }
         });
         console.log("Max busy:" + maxBusyPerson);
         console.log("Min busy:" + minBusyPerson);
-        drawGraph(resultSet);
+        //drawGraph(resultSet);
     }
 
 
 
 });
 
-function drawGraph(data) {
-    var data = data;
-    var width = 400,
-            height = 400,
-            radius = Math.min(width, height) / 2;
-
-    var color = d3.scale.ordinal()
-            .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-
-    var arc = d3.svg.arc()
-            .outerRadius(radius - 10)
-            .innerRadius(radius - 70);
-
-    var pie = d3.layout.pie()
-            .sort(null)
-            .value(function (d) {
-                return d.hoursBusy;
-            });
-
-    var svg = d3.select("div.panel-body").append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .append("g")
-            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-    var g = svg.selectAll(".arc")
-            .data(pie(data))
-            .enter().append("g")
-            .attr("class", "arc");
-
-    g.append("path")
-            .attr("d", arc)
-            .style("fill", function (d) {
-                return color(d.data.name);
-            });
-
-    g.append("text")
-            .attr("transform", function (d) {
-                return "translate(" + arc.centroid(d) + ")";
-            })
-            .attr("dy", ".35em")
-            .text(function (d) {
-                return d.data.name;
-            });
-//});
-
-    function type(d) {
-        d.hoursBusy = +d.hoursBusy;
-        return d;
-    }
-}
+//function drawGraph(data) {
+//    var data = data;
+//    var width = 400,
+//            height = 400,
+//            radius = Math.min(width, height) / 2;
+//
+//    var color = d3.scale.ordinal()
+//            .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+//
+//    var arc = d3.svg.arc()
+//            .outerRadius(radius - 10)
+//            .innerRadius(radius - 70);
+//
+//    var pie = d3.layout.pie()
+//            .sort(null)
+//            .value(function (d) {
+//                return d.hoursBusy;
+//            });
+//
+//    var svg = d3.select("div.panel-body").append("svg")
+//            .attr("width", width)
+//            .attr("height", height)
+//            .append("g")
+//            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+//
+//    var g = svg.selectAll(".arc")
+//            .data(pie(data))
+//            .enter().append("g")
+//            .attr("class", "arc");
+//
+//    g.append("path")
+//            .attr("d", arc)
+//            .style("fill", function (d) {
+//                return color(d.data.name);
+//            });
+//
+//    g.append("text")
+//            .attr("transform", function (d) {
+//                return "translate(" + arc.centroid(d) + ")";
+//            })
+//            .attr("dy", ".35em")
+//            .text(function (d) {
+//                return d.data.name;
+//            });
+////});
+//
+//    function type(d) {
+//        d.hoursBusy = +d.hoursBusy;
+//        return d;
+//    }
+//}
 
