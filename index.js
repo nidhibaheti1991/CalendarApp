@@ -22,7 +22,7 @@ $(document).ready(function () {
         users = data.result;
         $.each(data.result, function (key, val) {
             console.log(val.name);
-            $("select").append("<option value=\"" + val.sys_id + "\">" + val.name + "</option>");
+            $(".form-control1").append("<option value=\"" + val.sys_id + "\">" + val.name + "</option>");
             map[val.sys_id] = val.name;
         });
     });
@@ -38,7 +38,6 @@ $(document).ready(function () {
         });
         getResultSet();
         $.each(users, function (key, value) {
-            console.log("XXX");
             var userName = value.name;
             $.each(resultSet, function (key, val) {
                 if (val.name === userName) {
@@ -128,7 +127,34 @@ $(document).ready(function () {
 //        });
 
     });
-
+    $("#sel2").change(function () {
+        var selectedText = this.options[this.selectedIndex].text;
+        //alert("clicked" + selectedText);
+        var s1 = '20170306T' + selectedText.replace(/:/g, '').substring(0, 6);
+        var s2 = '20170307T' + selectedText.replace(/:/g, '').substring(0, 6);
+        var s3 = '20170308T' + selectedText.replace(/:/g, '').substring(0, 6);
+        var s4 = '20170309T' + selectedText.replace(/:/g, '').substring(0, 6);
+        var s5 = '201703010T' + selectedText.replace(/:/g, '').substring(0, 6);
+        var e1 = '20170306T' + selectedText.replace(/:/g, '').substring(7);
+        var e2 = '20170307T' + selectedText.replace(/:/g, '').substring(7);
+        var e3 = '20170308T' + selectedText.replace(/:/g, '').substring(7);
+        var e4 = '20170309T' + selectedText.replace(/:/g, '').substring(7);
+        var e5 = '201703010T' + selectedText.replace(/:/g, '').substring(7);
+        console.log(e1);
+        $.each(event, function (key, value) {
+            //if(typeof value.end_date_time!='undefined' && typeof value.start_date_time!='undefined'){
+                if(getDateFromString(e1)<getDateFromString(value.start_date_time) || getDateFromString(s1)>getDateFromString(value.end_date_time) 
+                        ||getDateFromString(e2)<getDateFromString(value.start_date_time) || getDateFromString(s2)>getDateFromString(value.end_date_time)
+                        || getDateFromString(e3)<getDateFromString(value.start_date_time) || getDateFromString(s3)>getDateFromString(value.end_date_time)
+                        || getDateFromString(e4)<getDateFromString(value.start_date_time) || getDateFromString(s4)>getDateFromString(value.end_date_time)
+                        || getDateFromString(e5)<getDateFromString(value.start_date_time) || getDateFromString(s5)>getDateFromString(value.end_date_time)){
+                    console.log(map[value.user.value]+" is available");
+                }
+//            }else{
+//                 console.log(map[value.user.value]+" is available");
+//            }
+        });
+    });
     /* Utility function to generate date from given input datetime string */
     function getDateFromString(date) {
         var dateString = date.substring(0, 4) + "-" + date.substring(4, 6) + "-" + date.substring(6, 11) + ":" + date.substring(11, 13) + ":" + date.substring(13, 15) + "Z";
