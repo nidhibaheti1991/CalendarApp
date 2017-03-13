@@ -141,7 +141,7 @@ $(document).ready(function () {
         var e4 = '20170309T' + selectedText.replace(/:/g, '').substring(7);
         var e5 = '201703010T' + selectedText.replace(/:/g, '').substring(7);
         console.log(e1);
-        $.each(event, function (key, value) {
+        $.each(events, function (key, value) {
             //if(typeof value.end_date_time!='undefined' && typeof value.start_date_time!='undefined'){
                 if(getDateFromString(e1)<getDateFromString(value.start_date_time) || getDateFromString(s1)>getDateFromString(value.end_date_time) 
                         ||getDateFromString(e2)<getDateFromString(value.start_date_time) || getDateFromString(s2)>getDateFromString(value.end_date_time)
