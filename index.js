@@ -48,16 +48,16 @@ $(document).ready(function () {
         });
         $('#userInfo').append("<h4>Max busy: " + maxBusyPerson + " </h4>");
         $('#userInfo').append("<h4>Min busy: " + minBusyPerson + " </h4>");
-        $('#userInfo').append("<h3> Users busy with tasks</h3>");
-        $.each(events,function(key,value){
-            if(value.type==='task'){
-                 $('#userInfo').append("<p>"+map[value.user.value]+" : "+ getDateFromString(value.start_date_time).toUTCString()+" to "+getDateFromString(value.end_date_time).toUTCString()+"</p>");
+        // $('#task').append("<h3> Users busy with tasks</h3>");
+        $.each(events, function (key, value) {
+            if (value.type === 'task') {
+                $('#task').append("<p>" + map[value.user.value] + " : " + getDateFromString(value.start_date_time).toUTCString() + " to " + getDateFromString(value.end_date_time).toUTCString() + "</p>");
             }
         });
-        $('#userInfo').append("<h3> Users busy with meeting</h3>");
-        $.each(events,function(key,value){
-            if(value.type==='meeting'){
-                 $('#userInfo').append("<p>"+map[value.user.value]+" : "+ getDateFromString(value.start_date_time).toUTCString()+" to "+getDateFromString(value.start_date_time).toUTCString()+"</p>");
+        //$('#userInfo').append("<h3> Users busy with meeting</h3>");
+        $.each(events, function (key, value) {
+            if (value.type === 'meeting') {
+                $('#meeting').append("<p>" + map[value.user.value] + " : " + getDateFromString(value.start_date_time).toUTCString() + " to " + getDateFromString(value.end_date_time).toUTCString() + "</p>");
             }
         });
 
