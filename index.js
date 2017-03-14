@@ -10,6 +10,7 @@ $(document).ready(function () {
     console.log("Hello world");
     // page is now ready, initialize the calendar...
     var map = {};
+    var userAvailability = {};
     var users;
     var events;
     var selectedEmployeeId;
@@ -24,6 +25,7 @@ $(document).ready(function () {
             console.log(val.name);
             $(".form-control1").append("<option value=\"" + val.sys_id + "\">" + val.name + "</option>");
             map[val.sys_id] = val.name;
+            userAvailability[val.sys_id] = true;
         });
     });
 
@@ -47,13 +49,13 @@ $(document).ready(function () {
         });
         $('#userInfo').append("<h4>Max busy: " + maxBusyPerson + " </h4>");
         $('#userInfo').append("<h4>Min busy: " + minBusyPerson + " </h4>");
-        // $('#task').append("<h3> Users busy with tasks</h3>");
+
         $.each(events, function (key, value) {
             if (value.type === 'task') {
                 $('#task').append("<p>" + map[value.user.value] + " : " + getDateFromString(value.start_date_time).toUTCString() + " to " + getDateFromString(value.end_date_time).toUTCString() + "</p>");
             }
         });
-        //$('#userInfo').append("<h3> Users busy with meeting</h3>");
+
         $.each(events, function (key, value) {
             if (value.type === 'meeting') {
                 $('#meeting').append("<p>" + map[value.user.value] + " : " + getDateFromString(value.start_date_time).toUTCString() + " to " + getDateFromString(value.end_date_time).toUTCString() + "</p>");
@@ -90,20 +92,13 @@ $(document).ready(function () {
         selectedEmployeeId = this.value;
         var selectedText = this.options[this.selectedIndex].text;
         console.log(selectedEmployeeId + " & " + selectedText);
-        //var hoursBusy = 0;
+
         $.each(events, function (key, val) {
             console.log("Getting event details" + val.sys_id + " " + selectedEmployeeId);
             if (val.user.value === selectedEmployeeId) {
 
 
-//                var start_date = getDateFromString(val.start_date_time);
-//                var end_date = getDateFromString(val.end_date_time);
-//                //console.log("Start Date" + val.start_date_time + " " + start_date);
-//                //console.log("End Date" + val.end_date_time + " " + end_date);
-//                var timeDiff = Math.abs(end_date.getTime() - start_date.getTime());
-//                var diffHours = Math.ceil(timeDiff / (1000 * 3600));
-//                hoursBusy = hoursBusy + diffHours;
-                //console.log(diffHours);
+
                 var color;
                 if (val.type === 'task') {
                     color = '#d4f442';
@@ -119,41 +114,51 @@ $(document).ready(function () {
         });
         console.log(JSON.stringify(resultSet));
 
-        //console.log("Busy for" + hoursBusy + " hours");
-//        $.each(resultSet, function (key, val) {
-//            if (val.name === selectedText) {
-//                $('#userInfo').append("<p>" + val.name + " is busy for " + val.hoursBusy + " hours and free for "+ (totalHours-val.hoursBusy) +" hours from March 6 to March 10.</p>");
-//            }
-//        });
+
 
     });
     $("#sel2").change(function () {
         var selectedText = this.options[this.selectedIndex].text;
-        //alert("clicked" + selectedText);
-        var s1 = '20170306T' + selectedText.replace(/:/g, '').substring(0, 6);
-        var s2 = '20170307T' + selectedText.replace(/:/g, '').substring(0, 6);
-        var s3 = '20170308T' + selectedText.replace(/:/g, '').substring(0, 6);
-        var s4 = '20170309T' + selectedText.replace(/:/g, '').substring(0, 6);
-        var s5 = '201703010T' + selectedText.replace(/:/g, '').substring(0, 6);
-        var e1 = '20170306T' + selectedText.replace(/:/g, '').substring(7);
-        var e2 = '20170307T' + selectedText.replace(/:/g, '').substring(7);
-        var e3 = '20170308T' + selectedText.replace(/:/g, '').substring(7);
-        var e4 = '20170309T' + selectedText.replace(/:/g, '').substring(7);
-        var e5 = '201703010T' + selectedText.replace(/:/g, '').substring(7);
-        console.log(e1);
+        selectedText = selectedText.replace(/:/g, '');
+        var selectedStart = selectedText.replace(/:/g, '').substring(0, 6);
+        var selectedEnd = selectedText.replace(/:g/, '').substring(7);
         $.each(events, function (key, value) {
-            //if(typeof value.end_date_time!='undefined' && typeof value.start_date_time!='undefined'){
-                if(getDateFromString(e1)<getDateFromString(value.start_date_time) || getDateFromString(s1)>getDateFromString(value.end_date_time) 
-                        ||getDateFromString(e2)<getDateFromString(value.start_date_time) || getDateFromString(s2)>getDateFromString(value.end_date_time)
-                        || getDateFromString(e3)<getDateFromString(value.start_date_time) || getDateFromString(s3)>getDateFromString(value.end_date_time)
-                        || getDateFromString(e4)<getDateFromString(value.start_date_time) || getDateFromString(s4)>getDateFromString(value.end_date_time)
-                        || getDateFromString(e5)<getDateFromString(value.start_date_time) || getDateFromString(s5)>getDateFromString(value.end_date_time)){
-                    console.log(map[value.user.value]+" is available");
-                }
-//            }else{
-//                 console.log(map[value.user.value]+" is available");
-//            }
+            var selectedStartString = value.start_date_time.substring(0, 9) + selectedStart;
+            var selectedEndString = value.end_date_time.substring(0, 9) + selectedEnd;
+            var selectedStartDate = getDateFromString(selectedStartString);
+            var selectedEndDate = getDateFromString(selectedEndString);
+            var eventStartDate = getDateFromString(value.start_date_time);
+            var eventEndDate = getDateFromString(value.end_date_time);
+            console.log(selectedStartDate + " " + selectedEndDate + " " + eventStartDate + " " + eventEndDate);
+            if (userAvailability[value.user.value] && (selectedStartDate >= eventEndDate || selectedEndDate <= eventStartDate)) {
+                userAvailability[value.user.value] = true;
+            } else {
+                userAvailability[value.user.value] = false;
+            }
+
+
         });
+        console.log(JSON.stringify(userAvailability));
+        var value;
+        var availUsers = '';
+        Object.keys(userAvailability).forEach(function (key) {
+            value = userAvailability[key];
+            if (value === true) {
+                if (availUsers.length == 0) {
+                    availUsers = map[key];
+                } else {
+                    availUsers = availUsers + " , " + map[key];
+                }
+            }
+            //reset
+            userAvailability[key] = true;
+        });
+        if (availUsers.length > 0) {
+            $(".avail").text("Available people for this recurring task: " + availUsers);
+        } else {
+            $(".avail").text("Available people for this recurring task: None ");
+        }
+        //console.log(JSON.stringify(userAvailability));
     });
     /* Utility function to generate date from given input datetime string */
     function getDateFromString(date) {
@@ -211,56 +216,4 @@ $(document).ready(function () {
 
 
 });
-
-//function drawGraph(data) {
-//    var data = data;
-//    var width = 400,
-//            height = 400,
-//            radius = Math.min(width, height) / 2;
-//
-//    var color = d3.scale.ordinal()
-//            .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-//
-//    var arc = d3.svg.arc()
-//            .outerRadius(radius - 10)
-//            .innerRadius(radius - 70);
-//
-//    var pie = d3.layout.pie()
-//            .sort(null)
-//            .value(function (d) {
-//                return d.hoursBusy;
-//            });
-//
-//    var svg = d3.select("div.panel-body").append("svg")
-//            .attr("width", width)
-//            .attr("height", height)
-//            .append("g")
-//            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-//
-//    var g = svg.selectAll(".arc")
-//            .data(pie(data))
-//            .enter().append("g")
-//            .attr("class", "arc");
-//
-//    g.append("path")
-//            .attr("d", arc)
-//            .style("fill", function (d) {
-//                return color(d.data.name);
-//            });
-//
-//    g.append("text")
-//            .attr("transform", function (d) {
-//                return "translate(" + arc.centroid(d) + ")";
-//            })
-//            .attr("dy", ".35em")
-//            .text(function (d) {
-//                return d.data.name;
-//            });
-////});
-//
-//    function type(d) {
-//        d.hoursBusy = +d.hoursBusy;
-//        return d;
-//    }
-//}
 
